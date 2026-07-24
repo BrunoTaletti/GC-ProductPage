@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ghost Core - Gerador de Entregável</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0a0a0c;
+            --glass-bg: rgba(20, 20, 22, 0.65);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --text-main: #ffffff;
+            --text-muted: #a0a0a5;
+            --input-bg: rgba(0, 0, 0, 0.5);
+            --accent: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            /* Degrade em 135 graus: escuro no topo-esquerdo, leve clareamento no fundo-direito */
+            background-image: linear-gradient(135deg, rgba(10, 10, 12, 0.95) 0%, rgba(10, 10, 12, 0.65) 100%), url('ghostcore.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 40px 20px;
+            /* Força o navegador a imprimir as cores e imagens de fundo */
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        /* PAINEL DE CONTROLE (Importação rápida) */
+        .controls-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 20px;
+            width: 100%;
+            max-width: 540px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            z-index: 10;
+        }
+
+        .controls-panel label {
+            display: block;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--accent);
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .controls-flex {
+            display: flex;
+            gap: 10px;
+        }
+
+        .controls-flex input {
+            flex: 1;
+            padding: 12px;
+        }
+
+        .btn-load {
+            background-color: var(--accent);
+            color: var(--bg-dark);
+            border: none;
+            padding: 0 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-load:hover {
+            opacity: 0.8;
+        }
+
+        /* CABEÇALHO */
+        .header {
+            text-align: center;
+            margin-bottom: 32px;
+            max-width: 500px;
+        }
+
+        .header img {
+            max-width: 150px;
+            margin-bottom: 24px;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            letter-spacing: -0.5px;
+        }
+
+        .header p {
+            font-size: 0.95rem;
+            font-weight: 300;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        /* PAINEL CENTRAL (VIDRO) */
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 32px 24px;
+            width: 100%;
+            max-width: 540px;
+            box-shadow: 0 24px 48px rgba(0, 0, 0, 0.4);
+        }
+
+        .field-group {
+            margin-bottom: 16px;
+        }
+
+        .field-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .field-group label {
+            display: block;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        input, textarea {
+            width: 100%;
+            background: var(--input-bg);
+            border: 1px solid var(--glass-border);
+            color: var(--text-main);
+            padding: 12px 14px;
+            border-radius: 8px;
+            font-family: 'Inter', monospace;
+            font-size: 0.9rem;
+            outline: none;
+            resize: none;
+        }
+
+        textarea {
+            height: 80px;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+            overflow: hidden; /* Oculta a barra de rolagem, pois crescerá via JS */
+            transition: height 0.2s ease;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 32px;
+            max-width: 500px;
+        }
+
+        .footer p {
+            font-size: 0.9rem;
+            font-weight: 300;
+            color: var(--text-muted);
+            line-height: 1.5;
+            margin-bottom: 16px;
+        }
+
+        .footer a {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .footer img {
+            max-width: 90px;
+            margin-bottom: 12px;
+            opacity: 0.6;
+        }
+
+        .copyright {
+            font-size: 0.75rem !important;
+            color: rgba(255, 255, 255, 0.3) !important;
+            margin-bottom: 0 !important;
+        }
+
+        /* Botão de impressão flutuante */
+        .btn-imprimir {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background-color: var(--accent);
+            color: var(--bg-dark);
+            border: none;
+            padding: 14px 24px;
+            border-radius: 50px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            box-shadow: 0 8px 24px rgba(255, 255, 255, 0.2);
+            transition: transform 0.2s ease;
+            z-index: 1000;
+        }
+
+        .btn-imprimir:hover {
+            transform: translateY(-3px);
+        }
+
+        /* =========================================
+           REGRAS ESPECÍFICAS PARA IMPRESSÃO / PDF
+           ========================================= */
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 0;
+            }
+            body {
+                padding: 10px 20px;
+                height: 100vh;
+                overflow: hidden;
+                background-image: linear-gradient(135deg, rgba(10, 10, 12, 0.95) 0%, rgba(10, 10, 12, 0.65) 100%), url('ghostcore.jpg') !important;
+                justify-content: center;
+            }
+            .controls-panel, .btn-imprimir {
+                display: none !important; /* Oculta ferramentas na exportação */
+            }
+            .header {
+                margin-bottom: 15px;
+            }
+            .header img {
+                max-width: 100px;
+                margin-bottom: 10px;
+            }
+            .header h1 {
+                font-size: 1.1rem;
+                margin-bottom: 4px;
+            }
+            .header p {
+                font-size: 0.75rem;
+            }
+            .glass-panel {
+                padding: 16px 24px;
+                box-shadow: none !important;
+                border: 1px solid rgba(255, 255, 255, 0.15) !important;
+            }
+            .field-group {
+                margin-bottom: 8px;
+            }
+            .field-group label {
+                font-size: 0.65rem;
+                margin-bottom: 2px;
+            }
+            input, textarea {
+                padding: 6px 10px;
+                font-size: 0.75rem;
+            }
+            textarea {
+                /* Reduz drasticamente a fonte para caber o JSON completo */
+                font-size: 0.55rem;
+                line-height: 1.2;
+                height: auto !important; /* Libera a altura na impressão */
+            }
+            .footer {
+                margin-top: 15px;
+            }
+            .footer p {
+                font-size: 0.75rem;
+                margin-bottom: 8px;
+            }
+            .footer img {
+                max-width: 65px;
+                margin-bottom: 6px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .glass-panel, .controls-panel {
+                padding: 24px 16px;
+            }
+            .header h1 {
+                font-size: 1.3rem;
+            }
+            .btn-imprimir {
+                bottom: 15px;
+                right: 15px;
+                padding: 12px 20px;
+            }
+            .controls-flex {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- BOTÃO FLUTUANTE PARA GERAR PDF -->
+    <button class="btn-imprimir" onclick="window.print()">Gerar PDF</button>
+
+    <!-- PAINEL DE CONTROLE PARA IMPORTAÇÃO (Não sai no PDF) -->
+    <div class="controls-panel">
+        <label>Cole a linha de dados (separada por ;)</label>
+        <div class="controls-flex">
+            <input type="text" id="rawDataInput" placeholder="Ex: 147; ALP147; AQUECIDO; VENDIDO...">
+            <button class="btn-load" onclick="parseAndLoadData()">Carregar</button>
+        </div>
+    </div>
+
+    <!-- CABEÇALHO -->
+    <header class="header">
+        <img src="isotipo.svg" alt="Ghost Core Logo">
+        <h1>Obrigado por seu pedido</h1>
+        <p>A mais alta tecnologia em contingência e infraestrutura isolada. Seus ativos blindados contra bloqueios no Facebook Ads, prontos para escala.</p>
+    </header>
+
+    <!-- PAINEL CENTRAL (VIDRO) -->
+    <main class="glass-panel">
+        
+        <div class="field-group">
+            <label>Ref Code</label>
+            <div class="input-wrapper">
+                <input type="text" id="refCode">
+            </div>
+        </div>
+
+        <div class="field-group">
+            <label>Tipo do Produto</label>
+            <div class="input-wrapper">
+                <input type="text" id="prodType">
+            </div>
+        </div>
+
+        <div class="field-group">
+            <label>UUID</label>
+            <div class="input-wrapper">
+                <input type="text" id="uuid">
+            </div>
+        </div>
+
+        <div class="field-group">
+            <label>E-mail</label>
+            <div class="input-wrapper">
+                <input type="text" id="email">
+            </div>
+        </div>
+
+        <div class="field-group">
+            <label>Senha</label>
+            <div class="input-wrapper">
+                <input type="text" id="password">
+            </div>
+        </div>
+
+        <div class="field-group">
+            <label>Token 2FA</label>
+            <div class="input-wrapper">
+                <input type="text" id="token">
+            </div>
+        </div>
+
+        <div class="field-group">
+            <label>Nome</label>
+            <div class="input-wrapper">
+                <input type="text" id="nome">
+            </div>
+        </div>
+
+        <div class="field-group">
+            <label>Data de Nascimento</label>
+            <div class="input-wrapper">
+                <input type="text" id="nascimento">
+            </div>
+        </div>
+
+        <div class="field-group">
+            <label>Link do Perfil</label>
+            <div class="input-wrapper">
+                <input type="text" id="link">
+            </div>
+        </div>
+
+        <div class="field-group">
+            <label>Cookies</label>
+            <div class="input-wrapper">
+                <textarea id="cookies"></textarea>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- RODAPÉ -->
+    <footer class="footer">
+        <p>Em caso de dúvidas, entre em contato com nosso suporte via <br>
+           <a href="https://wa.me/5511925452826" target="_blank">WhatsApp</a> ou acesse <a href="https://ghostcore.pro" target="_blank">ghostcore.pro</a>
+        </p>
+        
+        <img src="imagotipo.svg" alt="Ghost Core Icon">
+        <p class="copyright">&copy; 2026 Ghost Core. Todos os direitos reservados.</p>
+    </footer>
+
+    <!-- SCRIPT DO GERADOR -->
+    <!-- SCRIPT DO GERADOR -->
+    <script>
+        // Função para auto-ajustar a altura do textarea de cookies
+        function resizeTextarea(element) {
+            element.style.height = '80px'; // Reseta altura
+            element.style.height = element.scrollHeight + 'px'; // Ajusta para o conteúdo
+        }
+
+        // Função que lê a string separada por ";" e injeta nos campos
+        function parseAndLoadData() {
+            const rawData = document.getElementById('rawDataInput').value;
+            
+            if (!rawData || rawData.trim() === '') {
+                alert('Por favor, cole os dados primeiro.');
+                return;
+            }
+
+            const parts = rawData.split(';');
+
+            // Verifica se a string tem pelo menos as 10 colunas do novo formato
+            if (parts.length >= 10) {
+                document.getElementById('refCode').value = parts[0].trim();
+                document.getElementById('prodType').value = parts[1].trim();
+                document.getElementById('uuid').value = parts[2].trim();
+                document.getElementById('email').value = parts[3].trim();
+                document.getElementById('password').value = parts[4].trim();
+                document.getElementById('token').value = parts[5].trim();
+                document.getElementById('nome').value = parts[6].trim();
+                document.getElementById('nascimento').value = parts[7].trim();
+                
+                const cookiesEl = document.getElementById('cookies');
+                cookiesEl.value = parts[8].trim();
+                resizeTextarea(cookiesEl); // Expande a caixa na tela para leitura
+
+                document.getElementById('link').value = parts[9].trim();
+                
+                // Limpa o input de cima para facilitar a próxima importação
+                document.getElementById('rawDataInput').value = '';
+            } else {
+                alert('Formato inválido. Certifique-se de colar a linha inteira separada por ponto e vírgula (;). O formato esperado é: REF; TYPE; UUID; EMAIL; SENHA; 2FA; NOME; NASC; COOKIES; P_LINK;');
+            }
+        }
+    </script>
+</body>
+</html>
