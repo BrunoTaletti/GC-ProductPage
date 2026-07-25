@@ -25,8 +25,8 @@
         body {
             font-family: 'Inter', sans-serif;
             background-color: var(--bg-dark);
-            /* Degrade em 135 graus: escuro no topo-esquerdo, leve clareamento no fundo-direito */
-            background-image: linear-gradient(135deg, rgba(10, 10, 12, 0.95) 0%, rgba(10, 10, 12, 0.65) 100%), url('ghostcore.jpg');
+            /* Degrade em diagonal (baixo esquerdo para cima direito), mantendo a cor original na base e clareando elegantemente no topo */
+            background-image: linear-gradient(45deg, rgba(10, 10, 12, 0.98) 0%, rgba(38, 38, 45, 0.85) 100%), url('ghostcore.jpg');
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
@@ -154,7 +154,7 @@
             align-items: center;
         }
 
-        input, textarea {
+        input {
             width: 100%;
             background: var(--input-bg);
             border: 1px solid var(--glass-border);
@@ -167,12 +167,25 @@
             resize: none;
         }
 
-        textarea {
-            height: 80px;
-            word-wrap: break-word;
-            white-space: pre-wrap;
-            overflow: hidden; /* Oculta a barra de rolagem, pois crescerá via JS */
-            transition: height 0.2s ease;
+        /* Classes específicas para a seção do Proxy */
+        .proxy-wrapper {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .proxy-wrapper input:first-child {
+            flex: 4; /* Ocupa mais espaço */
+        }
+        
+        .proxy-wrapper input:last-child {
+            flex: 1; /* Ocupa menos espaço */
+        }
+
+        .proxy-info {
+            display: block;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 6px;
         }
 
         .footer {
@@ -196,8 +209,8 @@
         }
 
         .footer img {
-            max-width: 90px;
-            margin-bottom: 12px;
+            max-width: 160px!important;
+            margin: 12px 0;
             opacity: 0.6;
         }
 
@@ -242,58 +255,59 @@
                 padding: 10px 20px;
                 height: 100vh;
                 overflow: hidden;
-                background-image: linear-gradient(135deg, rgba(10, 10, 12, 0.95) 0%, rgba(10, 10, 12, 0.65) 100%), url('ghostcore.jpg') !important;
+                /* Degrade elegante atualizado para a versão impressa */
+                background-image: linear-gradient(45deg, rgba(10, 10, 12, 0.98) 0%, rgba(38, 38, 45, 0.85) 100%), url('ghostcore.jpg') !important;
                 justify-content: center;
             }
             .controls-panel, .btn-imprimir {
-                display: none !important; /* Oculta ferramentas na exportação */
+                display: none !important;
             }
             .header {
-                margin-bottom: 15px;
+                margin-bottom: 20px;
             }
             .header img {
-                max-width: 100px;
-                margin-bottom: 10px;
+                max-width: 110px;
+                margin-bottom: 12px;
             }
             .header h1 {
-                font-size: 1.1rem;
-                margin-bottom: 4px;
+                font-size: 1.2rem;
+                margin-bottom: 6px;
             }
             .header p {
-                font-size: 0.75rem;
+                font-size: 0.8rem;
             }
             .glass-panel {
-                padding: 16px 24px;
+                padding: 20px 24px;
                 box-shadow: none !important;
                 border: 1px solid rgba(255, 255, 255, 0.15) !important;
             }
             .field-group {
-                margin-bottom: 8px;
+                /* Aumentado o espaçamento entre os itens para um layout mais elegante na página A4 */
+                margin-bottom: 14px; 
             }
             .field-group label {
+                font-size: 0.7rem;
+                margin-bottom: 4px;
+            }
+            input {
+                padding: 8px 12px;
+                font-size: 0.8rem;
+            }
+            .proxy-info {
                 font-size: 0.65rem;
-                margin-bottom: 2px;
+                margin-top: 4px;
             }
-            input, textarea {
-                padding: 6px 10px;
-                font-size: 0.75rem;
-            }
-            textarea {
-                /* Reduz drasticamente a fonte para caber o JSON completo */
-                font-size: 0.55rem;
-                line-height: 1.2;
-                height: auto !important; /* Libera a altura na impressão */
-            }
+            
             .footer {
-                margin-top: 15px;
+                margin-top: 25px;
             }
             .footer p {
-                font-size: 0.75rem;
-                margin-bottom: 8px;
+                font-size: 0.8rem;
+                margin-bottom: 12px;
             }
             .footer img {
-                max-width: 65px;
-                margin-bottom: 6px;
+                max-width: 85px; /* Proporcionalmente maior no PDF também */
+                margin-bottom: 8px;
             }
         }
 
@@ -312,13 +326,17 @@
             .controls-flex {
                 flex-direction: column;
             }
+            .proxy-wrapper {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
 <body>
 
     <!-- BOTÃO FLUTUANTE PARA GERAR PDF -->
-    <button class="btn-imprimir" onclick="window.print()">Gerar PDF</button>
+    <!-- Agora ele chama uma função que altera o título antes de imprimir -->
+    <button class="btn-imprimir" onclick="prepararEImprimir()">Gerar PDF</button>
 
     <!-- PAINEL DE CONTROLE PARA IMPORTAÇÃO (Não sai no PDF) -->
     <div class="controls-panel">
@@ -395,17 +413,20 @@
             </div>
         </div>
 
+        <!-- NOVO CAMPO: Proxy SOCKS5 + Validade -->
+        <div class="field-group">
+            <label>Proxy SOCKS5</label>
+            <div class="input-wrapper proxy-wrapper">
+                <input type="text" id="proxySocks" placeholder="URL do Proxy">
+                <input type="text" id="proxyValidade" placeholder="Validade (ex: 1 semana)">
+            </div>
+            <span class="proxy-info">Formato: socks5://login:senha@ip:porta</span>
+        </div>
+
         <div class="field-group">
             <label>Link do Perfil</label>
             <div class="input-wrapper">
                 <input type="text" id="link">
-            </div>
-        </div>
-
-        <div class="field-group">
-            <label>Cookies</label>
-            <div class="input-wrapper">
-                <textarea id="cookies"></textarea>
             </div>
         </div>
 
@@ -422,12 +443,35 @@
     </footer>
 
     <!-- SCRIPT DO GERADOR -->
-    <!-- SCRIPT DO GERADOR -->
     <script>
-        // Função para auto-ajustar a altura do textarea de cookies
-        function resizeTextarea(element) {
-            element.style.height = '80px'; // Reseta altura
-            element.style.height = element.scrollHeight + 'px'; // Ajusta para o conteúdo
+        // Nova função para manipular o título e imprimir
+        function prepararEImprimir() {
+            const refCode = document.getElementById('refCode').value.trim();
+            const nome = document.getElementById('nome').value.trim();
+            
+            // Salva o título original para restaurar depois
+            const tituloOriginal = document.title;
+            
+            // Constrói o novo nome do arquivo "{REF_CODE} - {NOME}"
+            let novoTitulo = "";
+            if (refCode && nome) {
+                novoTitulo = `${refCode} - ${nome}`;
+            } else if (refCode || nome) {
+                novoTitulo = refCode || nome;
+            } else {
+                novoTitulo = "Entregavel_GhostCore"; // Fallback
+            }
+            
+            // Define o título que o navegador usará no salvamento em PDF
+            document.title = novoTitulo;
+            
+            // Aciona a impressão
+            window.print();
+            
+            // Restaura o título original 1 segundo depois da janela fechar
+            setTimeout(() => {
+                document.title = tituloOriginal;
+            }, 1000);
         }
 
         // Função que lê a string separada por ";" e injeta nos campos
@@ -452,16 +496,12 @@
                 document.getElementById('nome').value = parts[6].trim();
                 document.getElementById('nascimento').value = parts[7].trim();
                 
-                const cookiesEl = document.getElementById('cookies');
-                cookiesEl.value = parts[8].trim();
-                resizeTextarea(cookiesEl); // Expande a caixa na tela para leitura
-
                 document.getElementById('link').value = parts[9].trim();
                 
                 // Limpa o input de cima para facilitar a próxima importação
                 document.getElementById('rawDataInput').value = '';
             } else {
-                alert('Formato inválido. Certifique-se de colar a linha inteira separada por ponto e vírgula (;). O formato esperado é: REF; TYPE; UUID; EMAIL; SENHA; 2FA; NOME; NASC; COOKIES; P_LINK;');
+                alert('Formato inválido. Certifique-se de colar a linha inteira separada por ponto e vírgula (;). O formato esperado é: REF; TYPE; UUID; EMAIL; SENHA; 2FA; NOME; NASC; P_LINK;');
             }
         }
     </script>
